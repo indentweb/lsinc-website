@@ -10,28 +10,39 @@ import {
   NavigationMenuTrigger,
 } from "@repo/design-system/components/ui/navigation-menu";
 import {
+  Calendar,
+  ChevronDown,
   Cpu,
   Factory,
+  HandCoins,
   Menu,
   MoveRight,
-  Printer,
+  Newspaper,
+  Wrench,
   X,
 } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
+import { PrinterDropdownContent } from "./printer-dropdown";
 
 export const Header = () => {
   const navigationItems = [
     { title: "Home", href: "/" },
     {
-      title: "Capabilities",
-      description: "Engineering, printing & manufacturing.",
+      title: "Direct Object Printer",
+      customDropdown: true,
+    },
+    {
+      title: "Services",
       items: [
-        { title: "Engineering & Product Dev", href: "/capabilities#engineering", icon: Cpu },
-        { title: "OEM Specialty Printers", href: "/capabilities#printers", icon: Printer },
-        { title: "Contract Manufacturing", href: "/capabilities#manufacturing", icon: Factory },
+        { title: "All Services", href: "/services", icon: Wrench },
+        { title: "Leasing Options", href: "/services/leasing", icon: HandCoins },
+        { title: "Contract Manufacturing", href: "/services/contract-manufacturing", icon: Factory },
+        { title: "Engineering Services", href: "/services/engineering", icon: Cpu },
+        { title: "Upcoming Events", href: "/services/events", icon: Calendar },
       ],
     },
+    { title: "Press", href: "/press" },
     { title: "About", href: "/about" },
     { title: "Contact", href: "/contact" },
   ];
@@ -41,12 +52,8 @@ export const Header = () => {
   return (
     <header className="sticky top-0 left-0 z-40 w-full border-b border-border/40 bg-background/80 backdrop-blur-xl">
       <div className="container relative mx-auto flex h-14 items-center justify-between">
-        {/* Logo — minimal */}
         <Link href="/" className="flex items-center gap-2">
-          <span className="text-base font-black tracking-tight">LSINC</span>
-          <span className="hidden text-[9px] font-medium uppercase tracking-[0.15em] text-muted-foreground sm:block">
-            Ideas to Reality
-          </span>
+          <img src="/logos/lsinc-logo.png" alt="LSINC - Ideas to Reality" className="h-8 w-auto" />
         </Link>
 
         {/* Desktop Nav */}
@@ -61,9 +68,18 @@ export const Header = () => {
                         <Link href={item.href}>{item.title}</Link>
                       </Button>
                     </NavigationMenuLink>
+                  ) : item.customDropdown ? (
+                    <>
+                      <NavigationMenuTrigger className="h-8 bg-transparent text-xs font-medium hover:bg-muted hover:text-foreground focus:bg-muted focus:text-foreground data-[state=open]:bg-muted data-[state=open]:text-foreground data-[state=open]:hover:bg-muted data-[state=open]:focus:bg-muted">
+                        {item.title}
+                      </NavigationMenuTrigger>
+                      <NavigationMenuContent className="w-[560px]!">
+                        <PrinterDropdownContent />
+                      </NavigationMenuContent>
+                    </>
                   ) : (
                     <>
-                      <NavigationMenuTrigger className="h-8 text-xs font-medium">
+                      <NavigationMenuTrigger className="h-8 bg-transparent text-xs font-medium hover:bg-muted hover:text-foreground focus:bg-muted focus:text-foreground data-[state=open]:bg-muted data-[state=open]:text-foreground data-[state=open]:hover:bg-muted data-[state=open]:focus:bg-muted">
                         {item.title}
                       </NavigationMenuTrigger>
                       <NavigationMenuContent className="w-[400px]! p-3">
@@ -100,7 +116,6 @@ export const Header = () => {
             </Link>
           </Button>
 
-          {/* Mobile toggle */}
           <Button
             onClick={() => setOpen(!isOpen)}
             variant="ghost"
@@ -124,22 +139,39 @@ export const Header = () => {
                   >
                     {item.title}
                   </Link>
+                ) : item.customDropdown ? (
+                  <details className="group rounded-md">
+                    <summary className="flex cursor-pointer list-none items-center justify-between rounded-md px-3 py-2.5 text-sm font-medium transition-colors hover:bg-muted [&::-webkit-details-marker]:hidden">
+                      <span>{item.title}</span>
+                      <ChevronDown className="size-4 text-muted-foreground transition-transform duration-200 group-open:rotate-180" />
+                    </summary>
+                    <div className="mt-0.5 flex flex-col gap-0.5 border-l-2 border-border pl-3">
+                      <Link className="flex items-center gap-2 rounded-md px-3 py-2 text-sm hover:bg-muted" href="/products" onClick={() => setOpen(false)}>All Printers</Link>
+                      <Link className="flex items-center gap-2 rounded-md px-3 py-2 text-sm hover:bg-muted" href="/products/perivallo360" onClick={() => setOpen(false)}>Perivallo360</Link>
+                      <Link className="flex items-center gap-2 rounded-md px-3 py-2 text-sm hover:bg-muted" href="/products/perivallo360m" onClick={() => setOpen(false)}>Perivallo360m</Link>
+                      <Link className="flex items-center gap-2 rounded-md px-3 py-2 text-sm hover:bg-muted" href="/products/periq360" onClick={() => setOpen(false)}>PeriQ360</Link>
+                      <Link className="flex items-center gap-2 rounded-md px-3 py-2 text-sm hover:bg-muted" href="/products/perijet360s" onClick={() => setOpen(false)}>PeriJet360s</Link>
+                    </div>
+                  </details>
                 ) : (
-                  <div className="flex flex-col">
-                    <span className="px-3 py-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                      {item.title}
-                    </span>
-                    {item.items?.map((subItem) => (
-                      <Link
-                        className="flex items-center gap-2 rounded-md px-3 py-2 text-sm hover:bg-muted"
-                        href={subItem.href}
-                        key={subItem.title}
-                        onClick={() => setOpen(false)}
-                      >
-                        {subItem.title}
-                      </Link>
-                    ))}
-                  </div>
+                  <details className="group rounded-md">
+                    <summary className="flex cursor-pointer list-none items-center justify-between rounded-md px-3 py-2.5 text-sm font-medium transition-colors hover:bg-muted [&::-webkit-details-marker]:hidden">
+                      <span>{item.title}</span>
+                      <ChevronDown className="size-4 text-muted-foreground transition-transform duration-200 group-open:rotate-180" />
+                    </summary>
+                    <div className="mt-0.5 flex flex-col gap-0.5 border-l-2 border-border pl-3">
+                      {item.items?.map((subItem) => (
+                        <Link
+                          className="flex items-center gap-2 rounded-md px-3 py-2 text-sm hover:bg-muted"
+                          href={subItem.href}
+                          key={subItem.title}
+                          onClick={() => setOpen(false)}
+                        >
+                          {subItem.title}
+                        </Link>
+                      ))}
+                    </div>
+                  </details>
                 )}
               </div>
             ))}

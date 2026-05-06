@@ -39,19 +39,37 @@ const contactInfo = [
 export default function ContactPage() {
   return (
     <>
-      {/* Page Header */}
-      <section className="w-full border-b bg-muted/30 py-16 lg:py-24">
-        <div className="container mx-auto text-center">
-          <p className="mb-3 text-sm font-semibold uppercase tracking-widest text-accent">
-            Contact Us
-          </p>
-          <h1 className="text-4xl font-bold tracking-tight md:text-5xl">
-            Let&apos;s Build Something Together
-          </h1>
-          <p className="mt-4 text-lg text-muted-foreground">
-            Tell us about your project and our team will respond within one
-            business day.
-          </p>
+      {/* Contact hero — dark with conversational tone */}
+      <section className="relative w-full overflow-hidden border-b bg-[#1C292F] text-white">
+        <div className="pointer-events-none absolute inset-0">
+          <div className="absolute -top-32 left-1/4 size-96 rounded-full bg-accent/30 blur-3xl" />
+          <div className="absolute -bottom-32 right-1/4 size-96 rounded-full bg-accent/15 blur-3xl" />
+        </div>
+
+        <div className="container relative mx-auto py-20 lg:py-28">
+          <div className="max-w-3xl">
+            <p className="mb-6 inline-flex items-center gap-2 rounded-full border border-accent/40 bg-accent/10 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.2em] text-accent">
+              <span className="size-1.5 animate-pulse rounded-full bg-accent" />
+              We respond within 1 business day
+            </p>
+            <h1 className="text-5xl font-bold leading-[1.05] tracking-tight md:text-6xl lg:text-7xl">
+              Let&apos;s talk.
+              <br />
+              <span className="text-white/60">Your next product</span>
+              <br />
+              <span className="text-accent">starts here.</span>
+            </h1>
+          </div>
+
+          <div className="mt-12 flex flex-wrap items-center gap-6 border-t border-white/10 pt-6 text-sm text-white/70">
+            <a href="tel:+13365789000" className="flex items-center gap-2 transition-colors hover:text-accent">
+              <span className="font-mono">(336) 578-9000</span>
+            </a>
+            <span className="size-1 rounded-full bg-white/30" />
+            <a href="mailto:info@lsinc.com" className="transition-colors hover:text-accent">info@lsinc.com</a>
+            <span className="size-1 rounded-full bg-white/30" />
+            <span>Mebane, NC</span>
+          </div>
         </div>
       </section>
 

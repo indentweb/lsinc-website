@@ -17,7 +17,11 @@
   ],
   "scripts": {
     "build": "turbo build",
-    "dev": "turbo dev",
+    "dev": "turbo dev --filter=!docs --filter=!@repo/cms --filter=!studio",
+    "dev:full": "turbo dev",
+    "dev:cms": "turbo dev --filter=@repo/cms",
+    "dev:studio": "turbo dev --filter=studio",
+    "dev:stripe": "pnpm --filter api run dev:with-stripe",
     "check": "ultracite check",
     "fix": "ultracite fix",
     "test": "turbo test",

@@ -1,11 +1,11 @@
 import { createMetadata } from "@repo/seo/metadata";
 import type { Metadata } from "next";
+import { VideoHero } from "./components/video-hero";
 import { Clients } from "./components/clients";
-import { CTA } from "./components/cta";
-import { Hero } from "./components/hero";
-import { Services } from "./components/services";
-import { Stats } from "./components/stats";
+import { PrinterHighlights } from "./components/printer-highlights";
 import { Trust } from "./components/trust";
+import { PressHighlights } from "./components/press-highlights";
+import { CTA } from "./components/cta";
 
 export const metadata: Metadata = createMetadata({
   title: "LSINC | Engineering Solutions & Digital Printing",
@@ -16,11 +16,11 @@ export const metadata: Metadata = createMetadata({
 const Home = () => {
   return (
     <>
-      <Hero />
+      <VideoHero />
       <Clients />
-      <Services />
-      <Stats />
+      <PrinterHighlights />
       <Trust />
+      <PressHighlights />
       <CTA />
     </>
   );
