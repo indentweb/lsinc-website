@@ -1,0 +1,14 @@
+packages:
+  - 'apps/*'
+  - 'packages/*'
+allowBuilds:
+  '@clerk/shared': false
+  '@prisma/engines': false
+  '@sentry/cli': false
+  bufferutil: false
+  core-js: false
+  core-js-pure: false
+  esbuild: false
+  prisma: false
+  protobufjs: false
+  sharp: false
