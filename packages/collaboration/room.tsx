@@ -9,10 +9,10 @@ import {
 } from "@liveblocks/react/suspense";
 import type { ComponentProps, ReactNode } from "react";
 
-type RoomProps = ComponentProps<typeof LiveblocksProvider> & {
+type RoomProps = {
   id: string;
   children: ReactNode;
-  authEndpoint: string;
+  authEndpoint: string | ((room?: string) => Promise<{ token: string }>);
   fallback: ReactNode;
   resolveUsers?: (
     args: ResolveUsersArgs
@@ -20,6 +20,13 @@ type RoomProps = ComponentProps<typeof LiveblocksProvider> & {
   resolveMentionSuggestions?: (
     args: ResolveMentionSuggestionsArgs
   ) => Promise<string[]>;
+  throttle?: ComponentProps<typeof LiveblocksProvider>["throttle"];
+  lostConnectionTimeout?: ComponentProps<
+    typeof LiveblocksProvider
+  >["lostConnectionTimeout"];
+  backgroundKeepAliveTimeout?: ComponentProps<
+    typeof LiveblocksProvider
+  >["backgroundKeepAliveTimeout"];
 };
 
 export const Room = ({

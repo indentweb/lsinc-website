@@ -1,11 +1,17 @@
 "use server";
 
+import "server-only";
+
 import {
   auth,
   clerkClient,
   type OrganizationMembership,
 } from "@repo/auth/server";
+import type { ActionResult } from "@repo/next-config/action-result";
 import Fuse from "fuse.js";
+import { z } from "zod";
+
+const searchUsersInputSchema = z.string().trim().min(1);
 
 const getName = (user: OrganizationMembership): string | undefined => {
   let name = user.publicUserData?.firstName;
@@ -20,20 +26,24 @@ const getName = (user: OrganizationMembership): string | undefined => {
 };
 
 export const searchUsers = async (
-  query: string
-): Promise<
-  | {
-      data: string[];
-    }
-  | {
-      error: unknown;
-    }
-> => {
+  input: z.input<typeof searchUsersInputSchema>
+): Promise<ActionResult<string[]>> => {
+  const parsedInput = searchUsersInputSchema.safeParse(input);
+
+  if (!parsedInput.success) {
+    return {
+      error: "Invalid search query.",
+      fieldErrors: {
+        query: parsedInput.error.flatten().formErrors,
+      },
+    };
+  }
+
   try {
     const { orgId } = await auth();
 
     if (!orgId) {
-      throw new Error("Not logged in");
+      return { error: "Not logged in" };
     }
 
     const clerk = await clerkClient();
@@ -55,11 +65,15 @@ export const searchUsers = async (
       threshold: 0.3,
     });
 
-    const results = fuse.search(query);
-    const data = results.map((result) => result.item.id);
+    const data = fuse.search(parsedInput.data).map((result) => result.item.id);
 
     return { data };
   } catch (error) {
-    return { error };
+    return {
+      error:
+        error instanceof Error
+          ? error.message
+          : "Problem resolving mention suggestions",
+    };
   }
 };

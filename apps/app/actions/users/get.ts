@@ -1,10 +1,16 @@
 "use server";
 
+import "server-only";
+
 import {
   auth,
   clerkClient,
   type OrganizationMembership,
 } from "@repo/auth/server";
+import type { ActionResult } from "@repo/next-config/action-result";
+import { z } from "zod";
+
+const getUsersInputSchema = z.array(z.string().min(1)).min(1);
 
 const getName = (user: OrganizationMembership): string | undefined => {
   let name = user.publicUserData?.firstName;
@@ -39,20 +45,24 @@ const colors = [
 ];
 
 export const getUsers = async (
-  userIds: string[]
-): Promise<
-  | {
-      data: Liveblocks["UserMeta"]["info"][];
-    }
-  | {
-      error: unknown;
-    }
-> => {
+  input: z.input<typeof getUsersInputSchema>
+): Promise<ActionResult<Liveblocks["UserMeta"]["info"][]>> => {
+  const parsedInput = getUsersInputSchema.safeParse(input);
+
+  if (!parsedInput.success) {
+    return {
+      error: "Invalid users request.",
+      fieldErrors: {
+        userIds: parsedInput.error.flatten().formErrors,
+      },
+    };
+  }
+
   try {
     const { orgId } = await auth();
 
     if (!orgId) {
-      throw new Error("Not logged in");
+      return { error: "Not logged in" };
     }
 
     const clerk = await clerkClient();
@@ -66,7 +76,7 @@ export const getUsers = async (
       .filter(
         (user) =>
           user.publicUserData?.userId &&
-          userIds.includes(user.publicUserData.userId)
+          parsedInput.data.includes(user.publicUserData.userId)
       )
       .map((user) => ({
         name: getName(user) ?? "Unknown user",
@@ -76,6 +86,8 @@ export const getUsers = async (
 
     return { data };
   } catch (error) {
-    return { error };
+    return {
+      error: error instanceof Error ? error.message : "Problem resolving users",
+    };
   }
 };

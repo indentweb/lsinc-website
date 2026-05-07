@@ -7,11 +7,14 @@ import { useMotionValue, useSpring } from "motion/react"
 import { cn } from "@repo/design-system/lib/utils"
 
 const MOVEMENT_DAMPING = 1400
+type GlobeRenderState = Pick<COBEOptions, "width" | "height" | "phi" | "theta">
+type GlobeOptions = COBEOptions & {
+  onRender?: (state: GlobeRenderState) => void
+}
 
 const GLOBE_CONFIG: COBEOptions = {
   width: 800,
   height: 800,
-  onRender: () => {},
   devicePixelRatio: 2,
   phi: 0,
   theta: 0.3,
@@ -81,7 +84,7 @@ export function Globe({
     window.addEventListener("resize", onResize)
     onResize()
 
-    const globe = createGlobe(canvasRef.current!, {
+    const globeOptions: GlobeOptions = {
       ...config,
       width: widthRef.current * 2,
       height: widthRef.current * 2,
@@ -91,7 +94,9 @@ export function Globe({
         state.width = widthRef.current * 2
         state.height = widthRef.current * 2
       },
-    })
+    }
+
+    const globe = createGlobe(canvasRef.current!, globeOptions)
 
     setTimeout(() => (canvasRef.current!.style.opacity = "1"), 0)
     return () => {

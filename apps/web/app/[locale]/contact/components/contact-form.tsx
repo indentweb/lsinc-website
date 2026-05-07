@@ -2,7 +2,7 @@
 
 import { Button } from "@repo/design-system/components/ui/button";
 import { Input } from "@repo/design-system/components/ui/input";
-import { Textarea } from "@repo/design-system/components/ui/textarea";
+import { Label } from "@repo/design-system/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -10,24 +10,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@repo/design-system/components/ui/select";
-import { Label } from "@repo/design-system/components/ui/label";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { Textarea } from "@repo/design-system/components/ui/textarea";
+import type { ActionResult } from "@repo/next-config/action-result";
 import { ArrowRight, CheckCircle2, Loader2 } from "lucide-react";
-import { useState } from "react";
-
-const contactSchema = z.object({
-  firstName: z.string().min(1, "First name is required"),
-  lastName: z.string().min(1, "Last name is required"),
-  email: z.string().email("Please enter a valid email address"),
-  company: z.string().min(1, "Company name is required"),
-  phone: z.string().optional(),
-  service: z.string().min(1, "Please select a service"),
-  message: z.string().min(10, "Please provide more detail about your project"),
-});
-
-type ContactFormData = z.infer<typeof contactSchema>;
+import { useActionState, useState } from "react";
+import { useFormStatus } from "react-dom";
+import { submitContact } from "@/actions/contact";
 
 const services = [
   "Engineering & Product Development",
@@ -37,26 +25,47 @@ const services = [
   "Other / Not Sure",
 ];
 
-export function ContactForm() {
-  const [isSubmitted, setIsSubmitted] = useState(false);
+type ContactActionData = {
+  message: string;
+};
 
-  const {
-    register,
-    handleSubmit,
-    setValue,
-    formState: { errors, isSubmitting },
-  } = useForm<ContactFormData>({
-    resolver: zodResolver(contactSchema),
-  });
+const initialState: ActionResult<ContactActionData> | null = null;
+const hasData = (
+  state: ActionResult<ContactActionData> | null
+): state is { data: ContactActionData } => Boolean(state && "data" in state);
+const hasError = (
+  state: ActionResult<ContactActionData> | null
+): state is { error: string; fieldErrors?: Record<string, string[] | undefined> } =>
+  Boolean(state && "error" in state);
 
-  const onSubmit = async (data: ContactFormData) => {
-    // Simulate submission delay
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-    console.log("Form submitted:", data);
-    setIsSubmitted(true);
-  };
+const SubmitButton = () => {
+  const { pending } = useFormStatus();
 
-  if (isSubmitted) {
+  return (
+    <Button type="submit" size="lg" disabled={pending} className="w-full sm:w-auto">
+      {pending ? (
+        <>
+          <Loader2 className="mr-2 animate-spin" />
+          Sending...
+        </>
+      ) : (
+        <>
+          Send Message
+          <ArrowRight className="ml-2" />
+        </>
+      )}
+    </Button>
+  );
+};
+
+export function ContactForm({ locale }: { locale: string }) {
+  const [selectedService, setSelectedService] = useState("");
+  const [state, formAction] = useActionState(submitContact, initialState);
+
+  const errorState = hasError(state) ? state : null;
+  const fieldErrors = errorState?.fieldErrors;
+
+  if (hasData(state)) {
     return (
       <div className="flex flex-col items-center justify-center gap-4 rounded-xl border bg-muted/30 py-16 text-center">
         <div className="flex size-14 items-center justify-center rounded-full bg-green-100">
@@ -64,38 +73,40 @@ export function ContactForm() {
         </div>
         <h3 className="text-xl font-bold">Message Sent!</h3>
         <p className="max-w-sm text-sm text-muted-foreground">
-          Thank you for reaching out. Our team will review your inquiry and
-          respond within one business day.
+          {state.data.message}
         </p>
       </div>
     );
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-6">
+    <form action={formAction} className="flex flex-col gap-6">
+      <input type="hidden" name="locale" value={locale} />
+      <input type="hidden" name="service" value={selectedService} />
+
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="flex flex-col gap-2">
           <Label htmlFor="firstName">First Name *</Label>
           <Input
             id="firstName"
+            name="firstName"
             placeholder="John"
-            {...register("firstName")}
-            aria-invalid={!!errors.firstName}
+            aria-invalid={Boolean(fieldErrors?.firstName?.length)}
           />
-          {errors.firstName && (
-            <p className="text-xs text-destructive">{errors.firstName.message}</p>
+          {fieldErrors?.firstName?.[0] && (
+            <p className="text-xs text-destructive">{fieldErrors.firstName[0]}</p>
           )}
         </div>
         <div className="flex flex-col gap-2">
           <Label htmlFor="lastName">Last Name *</Label>
           <Input
             id="lastName"
+            name="lastName"
             placeholder="Smith"
-            {...register("lastName")}
-            aria-invalid={!!errors.lastName}
+            aria-invalid={Boolean(fieldErrors?.lastName?.length)}
           />
-          {errors.lastName && (
-            <p className="text-xs text-destructive">{errors.lastName.message}</p>
+          {fieldErrors?.lastName?.[0] && (
+            <p className="text-xs text-destructive">{fieldErrors.lastName[0]}</p>
           )}
         </div>
       </div>
@@ -104,13 +115,13 @@ export function ContactForm() {
         <Label htmlFor="email">Work Email *</Label>
         <Input
           id="email"
+          name="email"
           type="email"
           placeholder="john@company.com"
-          {...register("email")}
-          aria-invalid={!!errors.email}
+          aria-invalid={Boolean(fieldErrors?.email?.length)}
         />
-        {errors.email && (
-          <p className="text-xs text-destructive">{errors.email.message}</p>
+        {fieldErrors?.email?.[0] && (
+          <p className="text-xs text-destructive">{fieldErrors.email[0]}</p>
         )}
       </div>
 
@@ -119,29 +130,33 @@ export function ContactForm() {
           <Label htmlFor="company">Company *</Label>
           <Input
             id="company"
+            name="company"
             placeholder="Acme Corp"
-            {...register("company")}
-            aria-invalid={!!errors.company}
+            aria-invalid={Boolean(fieldErrors?.company?.length)}
           />
-          {errors.company && (
-            <p className="text-xs text-destructive">{errors.company.message}</p>
+          {fieldErrors?.company?.[0] && (
+            <p className="text-xs text-destructive">{fieldErrors.company[0]}</p>
           )}
         </div>
         <div className="flex flex-col gap-2">
           <Label htmlFor="phone">Phone (optional)</Label>
           <Input
             id="phone"
+            name="phone"
             type="tel"
             placeholder="(555) 123-4567"
-            {...register("phone")}
           />
         </div>
       </div>
 
       <div className="flex flex-col gap-2">
         <Label htmlFor="service">Service of Interest *</Label>
-        <Select onValueChange={(value) => setValue("service", value)}>
-          <SelectTrigger id="service" aria-invalid={!!errors.service}>
+        <Select value={selectedService} onValueChange={setSelectedService}>
+          <SelectTrigger
+            id="service"
+            className="w-full"
+            aria-invalid={Boolean(fieldErrors?.service?.length)}
+          >
             <SelectValue placeholder="Select a service..." />
           </SelectTrigger>
           <SelectContent>
@@ -152,8 +167,8 @@ export function ContactForm() {
             ))}
           </SelectContent>
         </Select>
-        {errors.service && (
-          <p className="text-xs text-destructive">{errors.service.message}</p>
+        {fieldErrors?.service?.[0] && (
+          <p className="text-xs text-destructive">{fieldErrors.service[0]}</p>
         )}
       </div>
 
@@ -161,29 +176,21 @@ export function ContactForm() {
         <Label htmlFor="message">Project Details *</Label>
         <Textarea
           id="message"
+          name="message"
           placeholder="Tell us about your project requirements, timeline, and any specific challenges you're facing..."
           rows={5}
-          {...register("message")}
-          aria-invalid={!!errors.message}
+          aria-invalid={Boolean(fieldErrors?.message?.length)}
         />
-        {errors.message && (
-          <p className="text-xs text-destructive">{errors.message.message}</p>
+        {fieldErrors?.message?.[0] && (
+          <p className="text-xs text-destructive">{fieldErrors.message[0]}</p>
         )}
       </div>
 
-      <Button type="submit" size="lg" disabled={isSubmitting} className="w-full sm:w-auto">
-        {isSubmitting ? (
-          <>
-            <Loader2 className="mr-2 animate-spin" />
-            Sending...
-          </>
-        ) : (
-          <>
-            Send Message
-            <ArrowRight className="ml-2" />
-          </>
-        )}
-      </Button>
+      {errorState?.error ? (
+        <p className="text-sm text-destructive">{errorState.error}</p>
+      ) : null}
+
+      <SubmitButton />
 
       <p className="text-xs text-muted-foreground">
         By submitting this form, you agree to our privacy policy. We&apos;ll

@@ -1,10 +1,10 @@
 import "./styles.css";
-import { fonts } from "@repo/design-system/lib/fonts";
 import { cn } from "@repo/design-system/lib/utils";
 import { Toaster } from "@repo/design-system/components/ui/sonner";
 import { TooltipProvider } from "@repo/design-system/components/ui/tooltip";
 import { ThemeProvider } from "@repo/design-system/providers/theme";
 import type { ReactNode } from "react";
+import { fonts } from "./fonts";
 import { Footer } from "./components/footer";
 import { Header } from "./components/header";
 

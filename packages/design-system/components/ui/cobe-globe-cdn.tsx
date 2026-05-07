@@ -1,8 +1,13 @@
 "use client"
 
 import { useEffect, useRef, useCallback, useState } from "react"
-import createGlobe from "cobe"
+import createGlobe, { type COBEOptions } from "cobe"
 import type React from "react"
+
+type GlobeRenderState = Pick<COBEOptions, "width" | "height" | "phi" | "theta">
+type GlobeOptions = COBEOptions & {
+  onRender?: (state: GlobeRenderState) => void
+}
 
 interface CdnMarker {
   id: string
@@ -111,7 +116,7 @@ export function GlobeCdn({
     if (!canvasRef.current) return
     const canvas = canvasRef.current
     let globe: ReturnType<typeof createGlobe> | null = null
-    let animationId: number
+    let resizeObserver: ResizeObserver | null = null
 
     let phi = 0
 
@@ -119,7 +124,7 @@ export function GlobeCdn({
       const width = canvas.offsetWidth
       if (width === 0 || globe) return
 
-      globe = createGlobe(canvas, {
+      const globeOptions: GlobeOptions = {
         devicePixelRatio: Math.min(window.devicePixelRatio || 1, 2),
         width,
         height: width,
@@ -133,37 +138,39 @@ export function GlobeCdn({
         markerColor: [0, 0, 0],
         glowColor: [0.94, 0.93, 0.91],
         markers: markers.map((m) => ({ location: m.location, size: 0.012 })),
-        onRender: () => {},
-      })
+        arcs: arcs.map((arc) => ({ from: arc.from, to: arc.to })),
+        onRender: (state) => {
+          if (!isPausedRef.current) phi += speed
 
-      function animate() {
-        if (!isPausedRef.current) phi += speed
-        globe!.update({
-          phi: phi + phiOffsetRef.current + dragOffset.current.phi,
-          theta: 0.2 + thetaOffsetRef.current + dragOffset.current.theta,
-        })
-        animationId = requestAnimationFrame(animate)
+          const size = canvas.offsetWidth || width
+          state.width = size
+          state.height = size
+          state.phi = phi + phiOffsetRef.current + dragOffset.current.phi
+          state.theta = 0.2 + thetaOffsetRef.current + dragOffset.current.theta
+        },
       }
-      animate()
-      setTimeout(() => {
-        if (canvas) canvas.style.opacity = "1"
+
+      globe = createGlobe(canvas, globeOptions)
+
+      requestAnimationFrame(() => {
+        canvas.style.opacity = "1"
       })
     }
 
     if (canvas.offsetWidth > 0) {
       init()
     } else {
-      const ro = new ResizeObserver((entries) => {
+      resizeObserver = new ResizeObserver((entries) => {
         if (entries[0]?.contentRect.width > 0) {
-          ro.disconnect()
+          resizeObserver?.disconnect()
           init()
         }
       })
-      ro.observe(canvas)
+      resizeObserver.observe(canvas)
     }
 
     return () => {
-      if (animationId!) cancelAnimationFrame(animationId)
+      resizeObserver?.disconnect()
       if (globe) globe.destroy()
     }
   }, [markers, arcs, speed])

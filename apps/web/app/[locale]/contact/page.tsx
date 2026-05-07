@@ -36,7 +36,15 @@ const contactInfo = [
   },
 ];
 
-export default function ContactPage() {
+interface ContactPageProperties {
+  readonly params: Promise<{
+    locale: string;
+  }>;
+}
+
+export default async function ContactPage({ params }: ContactPageProperties) {
+  const { locale } = await params;
+
   return (
     <>
       {/* Contact hero — dark with conversational tone */}
@@ -79,7 +87,7 @@ export default function ContactPage() {
           <div className="grid gap-12 lg:grid-cols-5 lg:gap-16">
             {/* Form */}
             <div className="lg:col-span-3">
-              <ContactForm />
+              <ContactForm locale={locale} />
             </div>
 
             {/* Contact Info */}

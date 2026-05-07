@@ -2,8 +2,9 @@
 
 import { Room } from "@repo/collaboration/room";
 import type { ReactNode } from "react";
-import { getUsers } from "@/app/actions/users/get";
-import { searchUsers } from "@/app/actions/users/search";
+import { authenticateCollaboration } from "@/actions/collaboration";
+import { getUsers } from "@/actions/users/get";
+import { searchUsers } from "@/actions/users/search";
 
 export const CollaborationProvider = ({
   orgId,
@@ -34,7 +35,15 @@ export const CollaborationProvider = ({
 
   return (
     <Room
-      authEndpoint="/api/collaboration/auth"
+      authEndpoint={async (room) => {
+        const response = await authenticateCollaboration({ room });
+
+        if ("error" in response) {
+          throw new Error(response.error);
+        }
+
+        return response.data;
+      }}
       fallback={
         <div className="px-3 text-muted-foreground text-xs">Loading...</div>
       }
