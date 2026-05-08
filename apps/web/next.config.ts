@@ -21,6 +21,11 @@ nextConfig.images?.remotePatterns?.push({
 if (process.env.NODE_ENV === "production") {
   const redirects: NextConfig["redirects"] = async () => [
     {
+      source: "/",
+      destination: "/en",
+      statusCode: 307,
+    },
+    {
       source: "/legal",
       destination: "/legal/privacy",
       statusCode: 301,
