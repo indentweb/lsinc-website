@@ -63,8 +63,12 @@ export function GlobeCdn({
   const thetaOffsetRef = useRef(0)
   const isPausedRef = useRef(false)
   const [traffic, setTraffic] = useState(() =>
-    defaultArcs.map((a, i) => ({ id: a.id, value: [420, 380, 290, 185, 156, 134][i] || 100 }))
+    arcs.map((arc, i) => ({ id: arc.id, value: [420, 380, 290, 185, 156, 134][i] || 100 }))
   )
+
+  useEffect(() => {
+    setTraffic(arcs.map((arc, i) => ({ id: arc.id, value: [420, 380, 290, 185, 156, 134][i] || 100 })))
+  }, [arcs])
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -129,16 +133,22 @@ export function GlobeCdn({
         width,
         height: width,
         phi: 0,
-        theta: 0.2,
+        theta: 0.35,
         dark: 0,
-        diffuse: 1.5,
-        mapSamples: 16000,
-        mapBrightness: 10,
-        baseColor: [1, 1, 1],
-        markerColor: [0, 0, 0],
-        glowColor: [0.94, 0.93, 0.91],
+        diffuse: 1.2,
+        mapSamples: 20000,
+        mapBrightness: 5,
+        mapBaseBrightness: 0.25,
+        baseColor: [0.3, 0.33, 0.39],
+        markerColor: [0.24, 0.56, 0.98],
+        glowColor: [0.95, 0.97, 1],
         markers: markers.map((m) => ({ location: m.location, size: 0.012 })),
         arcs: arcs.map((arc) => ({ from: arc.from, to: arc.to })),
+        arcColor: [0.24, 0.56, 0.98],
+        arcWidth: 0.8,
+        arcHeight: 0.18,
+        markerElevation: 0.04,
+        scale: 1,
         onRender: (state) => {
           if (!isPausedRef.current) phi += speed
 
@@ -146,7 +156,7 @@ export function GlobeCdn({
           state.width = size
           state.height = size
           state.phi = phi + phiOffsetRef.current + dragOffset.current.phi
-          state.theta = 0.2 + thetaOffsetRef.current + dragOffset.current.theta
+          state.theta = 0.35 + thetaOffsetRef.current + dragOffset.current.theta
         },
       }
 
@@ -171,12 +181,19 @@ export function GlobeCdn({
 
     return () => {
       resizeObserver?.disconnect()
-      if (globe) globe.destroy()
+      if (globe) {
+        try {
+          globe.destroy()
+        } catch {
+          // COBE can throw during Fast Refresh teardown when the canvas has already been detached.
+        }
+      }
     }
   }, [markers, arcs, speed])
 
   return (
     <div className={`relative aspect-square select-none ${className}`}>
+      <div className="absolute inset-[12%] rounded-full bg-[radial-gradient(circle_at_30%_30%,rgba(255,255,255,0.95),rgba(226,232,240,0.8)_58%,rgba(203,213,225,0.55)_100%)] shadow-[0_0_40px_rgba(148,163,184,0.18)]" />
       <canvas
         ref={canvasRef}
         onPointerDown={handlePointerDown}
@@ -190,24 +207,6 @@ export function GlobeCdn({
           touchAction: "none",
         }}
       />
-      {markers.map((m) => (
-        <div
-          key={m.id}
-          className="absolute pointer-events-none flex flex-col items-center gap-1.5"
-          style={{
-            top: "50%",
-            left: "50%",
-            transform: "translate(-50%, -50%)",
-          }}
-        >
-          <span
-            className="font-mono text-[0.55rem] text-black bg-white px-1.5 py-0.5 rounded shadow-sm"
-            style={{ letterSpacing: "0.05em", whiteSpace: "nowrap" }}
-          >
-            {m.region}
-          </span>
-        </div>
-      ))}
       {traffic.length > 0 && (
         <div className="absolute bottom-4 left-4 flex flex-col gap-1">
           {traffic.slice(0, 3).map((t) => (

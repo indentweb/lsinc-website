@@ -2,7 +2,7 @@
 
 import { ProjectShowcase } from "@repo/design-system/components/ui/project-showcase"
 import { ContainerScroll } from "@repo/design-system/components/ui/container-scroll-animation"
-import { GlobeCdn } from "@repo/design-system/components/ui/cobe-globe-cdn"
+import { WorldMapGraphic } from "../(home)/components/world-map"
 
 export default function ShowcasePage() {
   return (
@@ -41,14 +41,14 @@ export default function ShowcasePage() {
         </ContainerScroll>
       </section>
 
-      {/* Section 3: Globe CDN */}
+      {/* Section 3: Global Map */}
       <section className="flex flex-col items-center justify-center py-20 px-8 bg-white">
         <h2 className="text-3xl font-bold text-center mb-4">Global Edge Network</h2>
         <p className="text-muted-foreground text-center mb-12 max-w-md">
           Deployed across 10 regions worldwide for ultra-low latency.
         </p>
-        <div className="w-full max-w-lg">
-          <GlobeCdn />
+        <div className="w-full max-w-5xl">
+          <WorldMapGraphic showLabels={false} />
         </div>
       </section>
     </div>
